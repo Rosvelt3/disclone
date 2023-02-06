@@ -6,10 +6,19 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Link from "next/link";
 import { useLoginMutation } from "@/queries/queries";
+import { CgSpinner } from "react-icons/cg";
 
 const loginSchema = z.object({
-  email: z.string().trim().min(1, "Email is required").email("Must be a valid email address"),
-  password: z.string().trim().min(1, "Password is required").min(8, "Password must be at least 8 characters long"),
+  email: z
+    .string()
+    .trim()
+    .min(1, "Email is required")
+    .email("Must be a valid email address"),
+  password: z
+    .string()
+    .trim()
+    .min(1, "Password is required")
+    .min(8, "Password must be at least 8 characters long"),
 });
 
 type LoginData = z.infer<typeof loginSchema>;
@@ -18,6 +27,7 @@ export default function LoginCard() {
   const {
     register,
     handleSubmit,
+    setError,
     formState: { errors },
   } = useForm<LoginData>({
     resolver: zodResolver(loginSchema),
@@ -31,8 +41,11 @@ export default function LoginCard() {
       onSuccess: () => {
         router.push("/");
       },
-      onError: (error) => {
-        console.error(error);
+      onError: (error: any) => {
+        if (error.status === 400) {
+          setError("email", { message: "Email or password is invalid" });
+          setError("password", { message: "Email or password is invalid" });
+        }
       },
     });
   };
@@ -74,12 +87,22 @@ export default function LoginCard() {
             </p>
           )}
         </div>
-        <button
-          type="submit"
-          className="mt-6 mb-4 w-full rounded-md bg-sky-500 p-2 text-white transition-colors hover:bg-sky-600 font-medium"
-        >
-          Log In
-        </button>
+        {loginMutation.isLoading ? (
+          <button
+            type="submit"
+            className="mt-6 mb-4 w-full rounded-md bg-sky-500 p-2 font-medium text-white transition-colors"
+          >
+            <CgSpinner className="m-auto animate-spin" size="1.5rem" />
+          </button>
+        ) : (
+          <button
+            type="submit"
+            className="mt-6 mb-4 w-full rounded-md bg-sky-500 p-2 font-medium text-white transition-colors hover:bg-sky-600"
+          >
+            Log In
+          </button>
+        )}
+
         <div>
           <span className="text-slate-200">Need an account?</span>{" "}
           <Link href="/signup" className="text-sky-500">

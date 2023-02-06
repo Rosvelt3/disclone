@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Link from "next/link";
-import { useLoginMutation } from "@/queries/queries";
+import { useSignupMutation } from "@/queries/queries";
+import { CgSpinner } from "react-icons/cg";
 import AvatarPicker from "./AvatarPicker";
 
 const signupSchema = z.object({
@@ -19,14 +20,13 @@ const signupSchema = z.object({
   password: z
     .string()
     .trim()
-    .min(1, "Password is required")
     .min(8, "Password must be at least 8 characters long")
+    .regex(/[A-Z]+/, "Password must contain at least one uppercase letter")
+    .regex(/[a-z]+/, "Password must contain at least one lowercase letter")
+    .regex(/\d+/, "Password must contain at least one number")
     .regex(
-      /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=])[0-9a-zA-Z@#$%^&+=]$/,
-      {
-        message:
-          "Password must contain at least one number, one uppercase letter, one lowercase letter, and one special character",
-      }
+      /[#?!@$%^&*-]+/,
+      "Password must contain at least one special character"
     ),
 });
 
@@ -42,10 +42,20 @@ export default function LoginCard() {
   });
 
   const router = useRouter();
-  const loginMutation = useLoginMutation();
+  const signupMutation = useSignupMutation();
 
   const onSignup = (data: signupData) => {
-    loginMutation.mutate(data, {
+    const newData = {
+      ...data,
+      avatar: data.avatar.item(0),
+      passwordConfirm: data.password,
+    };
+    const formData = new FormData();
+    Object.entries(newData).forEach(([key, value]) =>
+      formData.append(key, value)
+    );
+
+    signupMutation.mutate(formData, {
       onSuccess: () => {
         router.push("/");
       },
@@ -54,7 +64,7 @@ export default function LoginCard() {
       },
     });
   };
-  console.log(errors);
+
   return (
     <div className="w-1/2 max-w-lg rounded-sm bg-slate-700 p-8 shadow-sm">
       <h1 className="text-center text-2xl text-white">Create an account</h1>
@@ -105,12 +115,22 @@ export default function LoginCard() {
             </p>
           )}
         </div>
-        <button
-          type="submit"
-          className="mt-6 mb-4 w-full rounded-md bg-sky-500 p-2 font-medium text-white transition-colors hover:bg-sky-600"
-        >
-          Sign Up
-        </button>
+        {signupMutation.isLoading ? (
+          <button
+            type="submit"
+            className="mt-6 mb-4 w-full rounded-md bg-sky-500 p-2 font-medium text-white transition-colors"
+          >
+            <CgSpinner className="m-auto animate-spin" size="1.5rem" />
+          </button>
+        ) : (
+          <button
+            type="submit"
+            className="mt-6 mb-4 w-full rounded-md bg-sky-500 p-2 font-medium text-white transition-colors hover:bg-sky-600"
+          >
+            Sign Up
+          </button>
+        )}
+
         <div>
           <span className="text-slate-200">Already have an account?</span>{" "}
           <Link href="/login" className="text-sky-500">
