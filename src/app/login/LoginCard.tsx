@@ -1,12 +1,13 @@
 "use client";
 
-import { useForm } from "react-hook-form";
-import { useRouter } from "next/navigation";
+import pb from "@/lib/pocketbase";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import { useMutation } from "@tanstack/react-query";
 import Link from "next/link";
-import { useLoginMutation } from "@/queries/queries";
+import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
 import { CgSpinner } from "react-icons/cg";
+import { z } from "zod";
 
 const loginSchema = z.object({
   email: z
@@ -34,6 +35,17 @@ export default function LoginCard() {
   });
 
   const router = useRouter();
+
+  const useLoginMutation = () =>
+  useMutation({
+    mutationFn: async (data: LoginData) => {
+      const authData = await pb
+        .collection("users")
+        .authWithPassword(data.email, data.password);
+      return authData;
+    },
+  });
+  
   const loginMutation = useLoginMutation();
 
   const onLogin = (data: LoginData) => {
@@ -89,6 +101,7 @@ export default function LoginCard() {
         </div>
         {loginMutation.isLoading ? (
           <button
+          disabled
             type="submit"
             className="mt-6 mb-4 w-full rounded-md bg-sky-500 p-2 font-medium text-white transition-colors"
           >
@@ -96,6 +109,7 @@ export default function LoginCard() {
           </button>
         ) : (
           <button
+          
             type="submit"
             className="mt-6 mb-4 w-full rounded-md bg-sky-500 p-2 font-medium text-white transition-colors hover:bg-sky-600"
           >

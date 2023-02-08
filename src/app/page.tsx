@@ -1,7 +1,10 @@
-export default function Home() {
+import ServerList from "./ServerList";
+
+export default async function Home() {
   return (
-    <main>
-      <h1>Home</h1>
+    <main className="flex h-full">
+      <ServerList />
+      <div className="flex grow bg-slate-700"></div>
     </main>
   );
 }

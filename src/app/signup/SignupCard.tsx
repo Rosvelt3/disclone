@@ -1,17 +1,18 @@
 "use client";
 
-import { useForm } from "react-hook-form";
-import { useRouter } from "next/navigation";
+import pb from "@/lib/pocketbase";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import { useMutation } from "@tanstack/react-query";
 import Link from "next/link";
-import { useSignupMutation } from "@/queries/queries";
+import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
 import { CgSpinner } from "react-icons/cg";
+import { z } from "zod";
 import AvatarPicker from "./AvatarPicker";
 
 const signupSchema = z.object({
   avatar: z.any().optional(),
-  fullName: z.string().trim().min(1, "Full name is required"),
+  name: z.string().trim().min(1, "Full name is required"),
   email: z
     .string()
     .trim()
@@ -30,21 +31,30 @@ const signupSchema = z.object({
     ),
 });
 
-type signupData = z.infer<typeof signupSchema>;
+type SignupData = z.infer<typeof signupSchema>;
 
 export default function LoginCard() {
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<signupData>({
+  } = useForm<SignupData>({
     resolver: zodResolver(signupSchema),
   });
 
   const router = useRouter();
+
+  const useSignupMutation = () =>
+    useMutation({
+      mutationFn: async (signupData: FormData) => {
+        const authData = await pb.collection("users").create(signupData);
+        return authData;
+      },
+    });
+
   const signupMutation = useSignupMutation();
 
-  const onSignup = (data: signupData) => {
+  const onSignup = (data: SignupData) => {
     const newData = {
       ...data,
       avatar: data.avatar.item(0),
@@ -76,12 +86,12 @@ export default function LoginCard() {
             type="text"
             autoComplete="fullname"
             formNoValidate
-            {...register("fullName")}
+            {...register("name")}
             className="mt-2 w-full rounded-md border-2 border-solid border-slate-700 bg-slate-800 p-2 text-white outline-none focus:border-sky-500"
           />
-          {errors.fullName && (
+          {errors.name && (
             <p className="text-sm italic text-red-500">
-              {errors.fullName.message as string}
+              {errors.name.message as string}
             </p>
           )}
         </div>
