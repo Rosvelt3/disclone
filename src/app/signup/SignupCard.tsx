@@ -33,7 +33,7 @@ const signupSchema = z.object({
 
 type SignupData = z.infer<typeof signupSchema>;
 
-export default function LoginCard() {
+export default function SignupCard() {
   const {
     register,
     handleSubmit,
@@ -91,7 +91,7 @@ export default function LoginCard() {
           />
           {errors.name && (
             <p className="text-sm italic text-red-500">
-              {errors.name.message as string}
+              {errors.name.message}
             </p>
           )}
         </div>
@@ -106,7 +106,7 @@ export default function LoginCard() {
           />
           {errors.email && (
             <p className="text-sm italic text-red-500">
-              {errors.email.message as string}
+              {errors.email.message}
             </p>
           )}
         </div>
@@ -121,7 +121,7 @@ export default function LoginCard() {
           />
           {errors.password && (
             <p className="text-sm italic text-red-500">
-              {errors.password.message as string}
+              {errors.password.message}
             </p>
           )}
         </div>

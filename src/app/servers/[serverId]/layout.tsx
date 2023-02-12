@@ -1,6 +1,6 @@
-import dynamic from "next/dynamic";
-import ServerList from "../../ServerList";
-const ServerUsers = dynamic(() => import("./ServerUsers"), { ssr: false });
+import ServerList from "@/app/ServerList";
+import ChannelList from "./ChannelList";
+import ServerUsers from "./ServerUsers";
 
 export default function ServersLayout({
   children,
@@ -12,8 +12,9 @@ export default function ServersLayout({
   return (
     <main className="flex h-full">
       <ServerList />
-      <div className="flex grow bg-slate-700">{children}</div>
-      <ServerUsers id={params.serverId} />
+      <ChannelList serverId={params.serverId}/>
+      <div className="flex grow bg-slate-600">{children}</div>
+      <ServerUsers serverId={params.serverId} />
     </main>
   );
 }

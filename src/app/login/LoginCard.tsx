@@ -80,7 +80,7 @@ export default function LoginCard() {
           />
           {errors.email && (
             <p className="text-sm italic text-red-500">
-              {errors.email.message as string}
+              {errors.email.message}
             </p>
           )}
         </div>
@@ -95,7 +95,7 @@ export default function LoginCard() {
           />
           {errors.password && (
             <p className="text-sm italic text-red-500">
-              {errors.password.message as string}
+              {errors.password.message}
             </p>
           )}
         </div>

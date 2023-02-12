@@ -9,6 +9,19 @@
 }
 * {
   margin: 0;
+  scrollbar-width: thin;
+  scrollbar-color: rgb(71, 71, 71) rgb(36, 36, 36);
+}
+:root {
+  --contexify-menu-bgColor: #1e293b;
+  --contexify-separator-color: #1f2937;
+  --contexify-item-color: #fff;
+  --contexify-activeItem-color: #fff;
+  --contexify-activeItem-bgColor: #38bdf8;
+  --contexify-rightSlot-color: #6f6e77;
+  --contexify-activeRightSlot-color: #fff;
+  --contexify-arrow-color: #6f6e77;
+  --contexify-activeArrow-color: #fff;
 }
 html,
 body {
@@ -44,4 +57,20 @@ h6 {
 #root,
 #__next {
   isolation: isolate;
+}
+
+/* Chrome, Edge, and Safari */
+*::-webkit-scrollbar {
+  width: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: rgb(71, 71, 71);
+  border-radius: 5px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: rgb(36, 36, 36);
+  border-radius: 14px;
+  border: transparent;
 }

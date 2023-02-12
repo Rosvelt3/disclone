@@ -1,5 +1,7 @@
+import "react-contexify/dist/ReactContexify.css";
 import "./globals.css";
 import ReactQueryWrapper from "./ReactQueryWrapper";
+import RouteGuard from "./RouteGuard";
 
 export default function RootLayout({
   children,
@@ -13,7 +15,11 @@ export default function RootLayout({
         head.tsx. Find out more at https://beta.nextjs.org/docs/api-reference/file-conventions/head
       */}
       <head />
-      <body className="overflow-hidden"><ReactQueryWrapper>{children}</ReactQueryWrapper></body>
+      <body className="overflow-hidden">
+        <RouteGuard>
+          <ReactQueryWrapper>{children}</ReactQueryWrapper>
+        </RouteGuard>
+      </body>
     </html>
   );
 }

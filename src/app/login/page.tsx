@@ -1,9 +1,6 @@
-import dynamic from "next/dynamic";
-const LoginCard = dynamic(() => import("./LoginCard"), {
-  ssr: false,
-});
+import LoginCard from "./LoginCard";
 
-export default function Login() {
+export default function LoginPage() {
   return (
     <main className="h-full flex justify-center items-center bg-gradient-to-br from-sky-600 to-blue-800">
       <LoginCard />
