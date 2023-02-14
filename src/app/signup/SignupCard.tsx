@@ -57,7 +57,7 @@ export default function SignupCard() {
   const onSignup = (data: SignupData) => {
     const newData = {
       ...data,
-      avatar: data.avatar.item(0),
+      avatar: data.avatar.item(0) || "",
       passwordConfirm: data.password,
     };
     const formData = new FormData();

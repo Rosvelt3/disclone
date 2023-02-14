@@ -1,4 +1,5 @@
 import "react-contexify/dist/ReactContexify.css";
+import ContextMenuBlocker from "./ContextMenuBlocker";
 import "./globals.css";
 import ReactQueryWrapper from "./ReactQueryWrapper";
 import RouteGuard from "./RouteGuard";
@@ -17,7 +18,7 @@ export default function RootLayout({
       <head />
       <body className="overflow-hidden">
         <RouteGuard>
-          <ReactQueryWrapper>{children}</ReactQueryWrapper>
+          <ReactQueryWrapper><ContextMenuBlocker>{children}</ContextMenuBlocker></ReactQueryWrapper>
         </RouteGuard>
       </body>
     </html>

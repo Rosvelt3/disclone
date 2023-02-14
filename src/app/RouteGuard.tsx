@@ -21,11 +21,15 @@ export default function RouteGuard({
         pathname &&
         !publicRoutes.includes(pathname)
       ) {
-        router.replace("/login");
+        return router.replace("/login");
       }
 
-      if (pb.authStore.isValid && pathname && publicRoutes.includes(pathname)) {
-        router.replace(pathname || "/");
+      if (pb.authStore.isValid && pathname) {
+        if (publicRoutes.includes(pathname)) {
+          return router.replace("/");
+        } else {
+          return router.replace(pathname || "/");
+        }
       }
     }, true);
 
@@ -35,10 +39,16 @@ export default function RouteGuard({
   }, []);
 
   useEffect(() => {
-    if (pb.authStore) {
+    if (pb.authStore.isValid && pathname && !publicRoutes.includes(pathname)) {
       setLoading(false);
+      return router.replace(pathname);
     }
-  }, [pb.authStore]);
+
+    if (!pb.authStore.isValid && pathname !== "/signup") {
+      setLoading(false);
+      return router.replace("/login");
+    }
+  }, [pathname]);
 
   if (loading)
     return (

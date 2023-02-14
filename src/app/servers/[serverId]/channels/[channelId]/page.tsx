@@ -3,7 +3,7 @@ import Messages from "./Messages";
 
 export default function ChannelPage() {
   return (
-    <div className="flex w-full flex-col overflow-y-scroll">
+    <div className="flex w-full flex-col">
       <Messages />
       <ChatBox />
     </div>

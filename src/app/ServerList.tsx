@@ -2,23 +2,24 @@
 
 import pb from "@/lib/pocketbase";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Record } from "pocketbase";
 import { useEffect, useState } from "react";
 import { Item, ItemParams, Menu, useContextMenu } from "react-contexify";
-import { AiOutlinePlus } from "react-icons/ai";
+import { AiOutlineLogout, AiOutlinePlus } from "react-icons/ai";
 import { FaTrash } from "react-icons/fa";
 import { Tooltip } from "react-tooltip";
 import "react-tooltip/dist/react-tooltip.css";
+import AddServerModal from "./AddServerModal";
 
 export type Server = { name: string; users: string[]; owner: string } & Record;
 const MENU_ID = "server-menu";
 export default function ServerList() {
   const { show } = useContextMenu({ id: MENU_ID });
   const router = useRouter();
-  const currentServer = usePathname()?.split("/")[2];
+  const pathname = usePathname();
+  const currentServer = pathname?.split("/")[2];
   const [showAddServerModal, setShowAddServerModal] = useState(false);
   const useDeleteServerMutation = () =>
     useMutation({
@@ -26,19 +27,19 @@ export default function ServerList() {
         await pb.collection("servers").delete(serverId);
       },
       onSuccess: () => {
-        router.replace("/servers");
+        refetch();
       },
     });
 
   const deleteServerMutation = useDeleteServerMutation();
 
-  const { data: servers } = useQuery({
-    queryKey: ["listCurrentUserWithServers", pb.authStore.model?.id],
+  const { data: servers, refetch } = useQuery({
+    queryKey: ["listUserServers", pb.authStore.model?.id],
     queryFn: async () => {
-      const user = await pb.collection("users").getOne(pb.authStore.model!.id, {
-        expand: "serversJoined",
+      const servers = await pb.collection("servers").getFullList<Server>(200, {
+        filter: `users ~ "${pb.authStore.model?.id}"`,
       });
-      return user.expand.serversJoined as Server[];
+      return servers as Server[];
     },
     enabled: !!pb.authStore.model,
   });
@@ -52,7 +53,8 @@ export default function ServerList() {
   };
 
   useEffect(() => {
-    if (servers?.length !== 0 && !currentServer) {
+    console.log("test");
+    if (pb.authStore.isValid && servers?.length !== 0 && !currentServer) {
       router.replace(`/servers/${servers?.[0].id}`);
     }
   }, [servers, currentServer]);
@@ -75,18 +77,15 @@ export default function ServerList() {
         />
         {servers?.map(({ name, id }) => (
           <Link
+            id={id}
             key={id}
             href={`/servers/${id}`}
             onContextMenu={(e) => onServerRightClick(e, id)}
+            className="flex h-[3rem] w-[3rem] items-center justify-center rounded-lg bg-slate-600 transition-all hover:rounded-none"
           >
-            <Image
-              src="/defaultAvatar.webp"
-              alt={`Server ${name}`}
-              width={48}
-              height={48}
-              id={id}
-              className="cursor-pointer rounded-lg transition-all hover:rounded-none"
-            />
+            <div className="text-2xl flex cursor-pointer items-center justify-center rounded-lg text-white transition-all hover:rounded-none">
+              {name[0].toUpperCase()}
+            </div>
             <Tooltip
               anchorId={id}
               content={name}
@@ -95,6 +94,22 @@ export default function ServerList() {
             />
           </Link>
         ))}
+        <button
+          onClick={() => {
+            pb.authStore.clear();
+            router.replace("/login");
+          }}
+          id="logout"
+          className="mt-auto flex h-[3rem] w-[3rem] items-center justify-center rounded-lg bg-slate-600 transition-all hover:rounded-none"
+        >
+          <AiOutlineLogout size={28} className="text-red-400" />
+        </button>
+        <Tooltip
+          anchorId="logout"
+          content="Logout"
+          place="right"
+          className="bg-gray-900 text-white opacity-100"
+        />
       </div>
       <Menu id="server-menu" animation={{ enter: false, exit: false }}>
         <Item onClick={handleServerDelete}>
@@ -104,6 +119,13 @@ export default function ServerList() {
           </div>
         </Item>
       </Menu>
+      <AddServerModal
+        show={showAddServerModal}
+        toggle={() => setShowAddServerModal(!showAddServerModal)}
+        onConfirm={() => {
+          setShowAddServerModal(false);
+        }}
+      />
     </>
   );
 }

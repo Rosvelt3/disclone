@@ -82,10 +82,15 @@ export default function ChannelList({ serverId }: ChannelListProps) {
   };
 
   useEffect(() => {
-    if (channels?.length !== 0 && !currentChannelId) {
+    if (
+      pb.authStore.isValid &&
+      channels?.length !== 0 &&
+      serverId &&
+      !currentChannelId
+    ) {
       router.replace(`/servers/${serverId}/channels/${channels?.[0].id}`);
     }
-  }, [serverId, channels, pathname]);
+  }, [serverId, channels, pathname, currentChannelId]);
 
   return (
     <>

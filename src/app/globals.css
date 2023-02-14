@@ -9,8 +9,8 @@
 }
 * {
   margin: 0;
-  scrollbar-width: thin;
-  scrollbar-color: rgb(71, 71, 71) rgb(36, 36, 36);
+  scrollbar-width: auto;
+  scrollbar-color: #0f172a #334155;
 }
 :root {
   --contexify-menu-bgColor: #1e293b;
@@ -58,19 +58,17 @@ h6 {
 #__next {
   isolation: isolate;
 }
+  /* Chrome, Edge, and Safari */
+  *::-webkit-scrollbar {
+    width: 8px;
+  }
 
-/* Chrome, Edge, and Safari */
-*::-webkit-scrollbar {
-  width: 10px;
-}
+  *::-webkit-scrollbar-track {
+    background: #334155;
+  }
 
-*::-webkit-scrollbar-track {
-  background: rgb(71, 71, 71);
-  border-radius: 5px;
-}
-
-*::-webkit-scrollbar-thumb {
-  background-color: rgb(36, 36, 36);
-  border-radius: 14px;
-  border: transparent;
-}
+  *::-webkit-scrollbar-thumb {
+    background-color: #0f172a;
+    border-radius: 4px;
+    border: 3px none #ffffff;
+  }

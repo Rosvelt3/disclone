@@ -52,19 +52,21 @@ export default function ChatBox() {
   };
 
   return (
-    <form
-      onSubmit={handleSubmit((data) =>
-        onSubmit({ user, channel, text: data.text })
-      )}
-      className="mx-auto mb-6 flex w-5/6 rounded-sm bg-slate-500 px-3 py-2"
-    >
-      <input
-        type="text"
-        placeholder="Send a Message"
-        className="w-full border-none bg-slate-500 text-slate-100 placeholder:text-slate-300 focus:ring-transparent"
-        {...register("text")}
-      />
-      <input type="submit" hidden />
-    </form>
+    <div className="px-4 pt-2">
+      <form
+        onSubmit={handleSubmit((data) =>
+          onSubmit({ user, channel, text: data.text })
+        )}
+        className="mx-auto mb-6 flex w-full"
+      >
+        <input
+          type="text"
+          placeholder="Send a Message"
+          className="w-full rounded-lg border-none bg-slate-500 py-2.5 text-slate-100 placeholder:text-slate-300 focus:ring-transparent"
+          {...register("text")}
+        />
+        <input type="submit" hidden />
+      </form>
+    </div>
   );
 }

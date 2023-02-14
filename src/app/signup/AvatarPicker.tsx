@@ -18,7 +18,7 @@ export default function AvatarPicker({
   error,
   register,
 }: AvatarPickerProps) {
-  const [src, setSrc] = useState("");
+  const [src, setSrc] = useState("/defaultAvatar.webp");
   const [fileName, setFileName] = useState("");
   const inputRef = useRef<HTMLInputElement | null>(null);
   const { ref, ...rest } = register(name, {
@@ -35,7 +35,7 @@ export default function AvatarPicker({
         alt="Default Avatar"
         width={96}
         height={96}
-        src={src || "/defaultAvatar.webp"}
+        src={src}
       />
       <button
         type="button"

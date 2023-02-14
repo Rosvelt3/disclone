@@ -5,23 +5,38 @@ import { useQuery } from "@tanstack/react-query";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { Record } from "pocketbase";
+import { useEffect, useRef } from "react";
+import { User } from "../../ServerUsers";
 
 type Message = { user: string; text: string; channel: string } & Record;
 
 export default function Messages() {
-  const currentChannelId = usePathname()?.split("/").pop();
-  const { data: messages } = useQuery({
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const currentChannelId = usePathname()?.split("/")[4];
+  const { data: messages, refetch } = useQuery({
     queryKey: ["listMessagesInChannel", currentChannelId],
     queryFn: async () => {
       const messages = await pb
         .collection("messages")
         .getFullList<Message>(200, {
           filter: `channel = "${currentChannelId}"`,
+          expand: "user",
         });
       return messages;
     },
     enabled: !!currentChannelId,
   });
+
+  useEffect(() => {
+    pb.collection("messages").subscribe("*", function (e) {
+      refetch();
+    });
+  }, []);
+
+  useEffect(() => {
+    if (messagesEndRef.current)
+      messagesEndRef.current.scrollTop = messagesEndRef.current.scrollHeight;
+  }, [messagesEndRef, messages?.length]);
 
   if (!messages?.length)
     return (
@@ -29,12 +44,19 @@ export default function Messages() {
     );
 
   return (
-    <div className="flex grow flex-col gap-6 p-3">
-      {messages?.map(({ id, text, created }) => {
+    <div
+      ref={messagesEndRef}
+      className="flex grow flex-col gap-6 overflow-y-auto p-3"
+    >
+      {messages?.map(({ id, text, created, expand }) => {
+        const user = expand.user as User;
+        const userAvatarUrl = user.avatar
+          ? `${process.env.NEXT_PUBLIC_POCKETBASE_URL}/api/files/${user.collectionName}/${user.id}/${user.avatar}`
+          : "/defaultAvatar.webp";
         return (
           <div className="flex items-center gap-3" key={id}>
             <Image
-              src="/defaultAvatar.webp"
+              src={userAvatarUrl}
               alt=""
               className="w-fit rounded-full"
               width={40}
@@ -42,7 +64,7 @@ export default function Messages() {
             />
             <div className="flex flex-col items-start" key={id}>
               <div>
-                <span className="text-white">Test User</span>{" "}
+                <span className="text-white">{user.name}</span>{" "}
                 <span className="text-xs text-gray-400">
                   {created.split(" ").slice(0, 1).join("")}
                 </span>
