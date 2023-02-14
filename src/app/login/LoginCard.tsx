@@ -75,6 +75,7 @@ export default function LoginCard() {
             type="text"
             autoComplete="email"
             formNoValidate
+            defaultValue="test@test.com"
             {...register("email")}
             className="mt-2 w-full rounded-md border-2 border-solid border-slate-700 bg-slate-800 p-2 text-white outline-none focus:border-sky-500"
           />
@@ -90,6 +91,7 @@ export default function LoginCard() {
             type="password"
             autoComplete="password"
             formNoValidate
+            defaultValue="Test@test1"
             {...register("password")}
             className="mt-2 w-full rounded-md border-2 border-solid border-slate-700 bg-slate-800 p-2 text-white outline-none focus:border-sky-500"
           />
