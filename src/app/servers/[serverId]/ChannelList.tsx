@@ -1,7 +1,7 @@
 "use client";
 
 import { Server } from "@/app/ServerList";
-import pb from "@/lib/pocketbase";
+import pb from "@/lib/appwrite";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";

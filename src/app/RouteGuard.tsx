@@ -1,6 +1,5 @@
 "use client";
 
-import pb from "@/lib/pocketbase";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -9,46 +8,46 @@ export default function RouteGuard({
 }: {
   children: React.ReactNode;
 }) {
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
   const publicRoutes = ["/login", "/signup"];
 
-  useEffect(() => {
-    const unsubscribe = pb.authStore.onChange(() => {
-      if (
-        !pb.authStore.isValid &&
-        pathname &&
-        !publicRoutes.includes(pathname)
-      ) {
-        return router.replace("/login");
-      }
+  // useEffect(() => {
+  //   const unsubscribe = pb.authStore.onChange(() => {
+  //     if (
+  //       !pb.authStore.isValid &&
+  //       pathname &&
+  //       !publicRoutes.includes(pathname)
+  //     ) {
+  //       return router.replace("/login");
+  //     }
 
-      if (pb.authStore.isValid && pathname) {
-        if (publicRoutes.includes(pathname)) {
-          return router.replace("/");
-        } else {
-          return router.replace(pathname || "/");
-        }
-      }
-    }, true);
+  //     if (pb.authStore.isValid && pathname) {
+  //       if (publicRoutes.includes(pathname)) {
+  //         return router.replace("/");
+  //       } else {
+  //         return router.replace(pathname || "/");
+  //       }
+  //     }
+  //   }, true);
 
-    return () => {
-      unsubscribe();
-    };
-  }, []);
+  //   return () => {
+  //     unsubscribe();
+  //   };
+  // }, []);
 
-  useEffect(() => {
-    if (pb.authStore.isValid && pathname && !publicRoutes.includes(pathname)) {
-      setLoading(false);
-      return router.replace(pathname);
-    }
+  // useEffect(() => {
+  //   if (pb.authStore.isValid && pathname && !publicRoutes.includes(pathname)) {
+  //     setLoading(false);
+  //     return router.replace(pathname);
+  //   }
 
-    if (!pb.authStore.isValid && pathname !== "/signup") {
-      setLoading(false);
-      return router.replace("/login");
-    }
-  }, [pathname]);
+  //   if (!pb.authStore.isValid && pathname !== "/signup") {
+  //     setLoading(false);
+  //     return router.replace("/login");
+  //   }
+  // }, [pathname]);
 
   if (loading)
     return (

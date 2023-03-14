@@ -1,6 +1,6 @@
 "use client";
 
-import pb from "@/lib/pocketbase";
+import pb from "@/lib/appwrite";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { usePathname } from "next/navigation";

@@ -1,6 +1,6 @@
 "use client";
 
-import pb from "@/lib/pocketbase";
+import pb from "@/lib/appwrite";
 import { useQuery } from "@tanstack/react-query";
 import Image from "next/image";
 import { Record } from "pocketbase";

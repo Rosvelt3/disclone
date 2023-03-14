@@ -1,10 +1,8 @@
 "use client";
 
-import pb from "@/lib/pocketbase";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Record } from "pocketbase";
 import { useEffect, useState } from "react";
 import { Item, ItemParams, Menu, useContextMenu } from "react-contexify";
 import { AiOutlineLogout, AiOutlinePlus } from "react-icons/ai";
@@ -13,51 +11,51 @@ import { Tooltip } from "react-tooltip";
 import "react-tooltip/dist/react-tooltip.css";
 import AddServerModal from "./AddServerModal";
 
-export type Server = { name: string; users: string[]; owner: string } & Record;
+export type Server = { name: string; users: string[]; owner: string }
 const MENU_ID = "server-menu";
 export default function ServerList() {
-  const { show } = useContextMenu({ id: MENU_ID });
-  const router = useRouter();
-  const pathname = usePathname();
-  const currentServer = pathname?.split("/")[2];
+  // const { show } = useContextMenu({ id: MENU_ID });
+  // const router = useRouter();
+  // const pathname = usePathname();
+  // const currentServer = pathname?.split("/")[2];
   const [showAddServerModal, setShowAddServerModal] = useState(false);
-  const useDeleteServerMutation = () =>
-    useMutation({
-      mutationFn: async (serverId: string) => {
-        await pb.collection("servers").delete(serverId);
-      },
-      onSuccess: () => {
-        refetch();
-      },
-    });
+  // const useDeleteServerMutation = () =>
+  //   useMutation({
+  //     mutationFn: async (serverId: string) => {
+  //       await pb.collection("servers").delete(serverId);
+  //     },
+  //     onSuccess: () => {
+  //       refetch();
+  //     },
+  //   });
 
-  const deleteServerMutation = useDeleteServerMutation();
+  // const deleteServerMutation = useDeleteServerMutation();
 
   const { data: servers, refetch } = useQuery({
-    queryKey: ["listUserServers", pb.authStore.model?.id],
+    // queryKey: ["listUserServers", pb.authStore.model?.id],
     queryFn: async () => {
-      const servers = await pb.collection("servers").getFullList<Server>(200, {
-        filter: `users ~ "${pb.authStore.model?.id}"`,
-      });
-      return servers as Server[];
+      // const servers = await pb.collection("servers").getFullList<Server>(200, {
+      //   filter: `users ~ "${pb.authStore.model?.id}"`,
+      // });
+      // return servers as Server[];
     },
-    enabled: !!pb.authStore.model,
+    // enabled: !!pb.authStore.model,
   });
 
   const onServerRightClick = (e: React.MouseEvent, serverId: string) => {
-    show({ event: e, props: { serverId } });
+    // show({ event: e, props: { serverId } });
   };
 
   const handleServerDelete = ({ props }: ItemParams) => {
-    deleteServerMutation.mutate(props.serverId);
+    // deleteServerMutation.mutate(props.serverId);
   };
 
-  useEffect(() => {
-    console.log("test");
-    if (pb.authStore.isValid && servers?.length !== 0 && !currentServer) {
-      router.replace(`/servers/${servers?.[0].id}`);
-    }
-  }, [servers, currentServer]);
+  // useEffect(() => {
+  //   console.log("test");
+  //   if (pb.authStore.isValid && servers?.length !== 0 && !currentServer) {
+  //     router.replace(`/servers/${servers?.[0].id}`);
+  //   }
+  // }, [servers, currentServer]);
 
   return (
     <>

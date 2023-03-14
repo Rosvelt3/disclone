@@ -1,7 +1,7 @@
-import pb from "@/lib/pocketbase";
+import { databases } from "@/lib/appwrite";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Record } from "pocketbase";
+import { ID } from "appwrite";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -19,7 +19,6 @@ type ServerData = {
   users: string[];
   owner: string;
 };
-type ServerRecord = ServerData & Record;
 
 export default function AddServerModal({
   show,
@@ -42,9 +41,12 @@ export default function AddServerModal({
   const useAddServerMutation = () =>
     useMutation({
       mutationFn: async (serverData: ServerData) => {
-        const server = await pb
-          .collection("servers")
-          .create<ServerRecord>(serverData);
+        const server = await databases.createDocument(
+          process.env.NEXT_PUBLIC_DISCLONE_DATABASE as string,
+          process.env.NEXT_PUBLIC_SERVERS_COLLECTION as string,
+          ID.unique(),
+          serverData
+        );
         return server;
       },
       onSuccess: () => {
@@ -57,12 +59,10 @@ export default function AddServerModal({
   const addServerMutation = useAddServerMutation();
 
   const onSubmit = (data: AddServerData) => {
-    if (!pb.authStore.model) return;
-
     const serverData = {
-      name: data.serverName,
-      users: [pb.authStore.model?.id],
-      owner: pb.authStore.model?.id,
+      name: "test",
+      users: ["test"],
+      owner: "test",
     };
 
     toggle();

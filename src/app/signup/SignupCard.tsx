@@ -1,8 +1,9 @@
 "use client";
 
-import pb from "@/lib/pocketbase";
+import { account } from "@/lib/appwrite";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
+import { ID } from "appwrite";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -47,7 +48,12 @@ export default function SignupCard() {
   const useSignupMutation = () =>
     useMutation({
       mutationFn: async (signupData: FormData) => {
-        const authData = await pb.collection("users").create(signupData);
+        const authData = account.create(
+          ID.unique(),
+          signupData.get("email") as string,
+          signupData.get("password") as string,
+          signupData.get("name") as string
+        );
         return authData;
       },
     });
@@ -90,9 +96,7 @@ export default function SignupCard() {
             className="mt-2 w-full rounded-md border-2 border-solid border-slate-700 bg-slate-800 p-2 text-white outline-none focus:border-sky-500"
           />
           {errors.name && (
-            <p className="text-sm italic text-red-500">
-              {errors.name.message}
-            </p>
+            <p className="text-sm italic text-red-500">{errors.name.message}</p>
           )}
         </div>
         <div className="mt-6">
