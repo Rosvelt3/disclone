@@ -4,8 +4,8 @@
 // import pb from "@/lib/appwrite";
 // import { useMutation, useQuery } from "@tanstack/react-query";
 // import { useRouter } from "next/navigation";
-export default function JoinServerCard() {
-// export default function JoinServerCard({ serverId }: { serverId: string }) {
+
+export default function JoinServerCard({ serverId }: { serverId: string }) {
 //   const router = useRouter();
 
 //   const { data: server } = useQuery({
