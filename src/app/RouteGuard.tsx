@@ -26,6 +26,7 @@ export default function RouteGuard({
 
     // If the user is logged in and is on a public route, redirect to home
     if (
+      localStorage.getItem("cookieFallback") &&
       localStorage.getItem("cookieFallback") !== "[]" &&
       publicRoutes.includes(pathname)
     ) {
