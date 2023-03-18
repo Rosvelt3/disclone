@@ -17,9 +17,11 @@ export default function RootLayout({
       */}
       <head />
       <body className="overflow-hidden">
-        <RouteGuard>
-          <ReactQueryWrapper><ContextMenuBlocker>{children}</ContextMenuBlocker></ReactQueryWrapper>
-        </RouteGuard>
+        <ReactQueryWrapper>
+          <RouteGuard>
+            <ContextMenuBlocker>{children}</ContextMenuBlocker>
+          </RouteGuard>
+        </ReactQueryWrapper>
       </body>
     </html>
   );

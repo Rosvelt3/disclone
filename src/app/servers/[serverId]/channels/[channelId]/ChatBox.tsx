@@ -1,10 +1,10 @@
 "use client";
 
-import pb from "@/lib/appwrite";
+import { account, databases } from "@/lib/appwrite";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { ID } from "appwrite";
 import { usePathname } from "next/navigation";
-import { Record } from "pocketbase";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -17,7 +17,7 @@ type Message = {
   text: string;
   channel: string | undefined;
 };
-type MessageRecord = Message & Record;
+type MessageRecord = Message;
 
 export default function ChatBox() {
   const queryClient = useQueryClient();
@@ -27,16 +27,33 @@ export default function ChatBox() {
     resolver: zodResolver(messageSchema),
   });
 
-  const user = pb.authStore.model?.id;
   const channel = usePathname()?.split("/").pop();
+
+  const { data: user } = useQuery({
+    queryKey: ["getUser"],
+    queryFn: async () => {
+      const currentUser = await account.get();
+      return currentUser;
+    },
+    enabled: !!channel,
+  });
 
   const useSendMessageMutation = () =>
     useMutation({
       mutationFn: async (message: Message) => {
         if (!user || !channel) return;
-        const messageData = await pb
-          .collection("messages")
-          .create<MessageRecord>(message);
+        const messageData = await databases.createDocument(
+          process.env.NEXT_PUBLIC_DISCLONE_DATABASE as string,
+          process.env.NEXT_PUBLIC_MESSAGES_COLLECTION as string,
+          ID.unique(),
+          {
+            user: user?.$id,
+            userName: user?.name,
+            text: message.text,
+            channel: channel,
+          }
+        );
+
         return messageData;
       },
       onSuccess: () => {

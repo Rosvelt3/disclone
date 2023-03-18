@@ -4,9 +4,9 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "pocketbase.isaiasdev.com",
+        hostname: "be.isaiasdev.com",
         port: "",
-        pathname: "/api/files/**",
+        pathname: `/v1/storage/buckets/${process.env.NEXT_PUBLIC_USER_AVATARS_BUCKET}/files/**`,
       },
     ],
   },

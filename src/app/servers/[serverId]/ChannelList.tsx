@@ -1,17 +1,15 @@
 "use client";
 
-import { Server } from "@/app/ServerList";
-import pb from "@/lib/appwrite";
+import { databases } from "@/lib/appwrite";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { ID, Query } from "appwrite";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Record } from "pocketbase";
 import { useEffect, useState } from "react";
 import { Item, ItemParams, Menu, useContextMenu } from "react-contexify";
 import { AiOutlinePlus } from "react-icons/ai";
 import { FaHashtag, FaTrash } from "react-icons/fa";
 
-type Channel = { name: string; server: string } & Record;
 type ChannelListProps = { serverId: string };
 const MENU_ID = "channel-menu";
 
@@ -26,10 +24,16 @@ export default function ChannelList({ serverId }: ChannelListProps) {
   const useAddChannelMutation = () =>
     useMutation({
       mutationFn: async (channelName: string) => {
-        const channel = await pb.collection("channels").create<Channel>({
-          name: channelName,
-          server: serverId,
-        });
+        const channel = await databases.createDocument(
+          process.env.NEXT_PUBLIC_DISCLONE_DATABASE as string,
+          process.env.NEXT_PUBLIC_CHANNELS_COLLECTION as string,
+          ID.unique(),
+          {
+            name: channelName,
+            server: serverId,
+          }
+        );
+
         return channel;
       },
       onSuccess: (data) => {
@@ -38,10 +42,15 @@ export default function ChannelList({ serverId }: ChannelListProps) {
         router.replace(`/servers/${serverId}/channels/${data?.id}`);
       },
     });
+
   const useDeleteChannelMutation = () =>
     useMutation({
       mutationFn: async (channelId: string) => {
-        await pb.collection("channels").delete(channelId);
+        await databases.deleteDocument(
+          process.env.NEXT_PUBLIC_DISCLONE_DATABASE as string,
+          process.env.NEXT_PUBLIC_CHANNELS_COLLECTION as string,
+          channelId
+        );
       },
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ["listChannelsInServer"] });
@@ -54,11 +63,11 @@ export default function ChannelList({ serverId }: ChannelListProps) {
   const { data: channels } = useQuery({
     queryKey: ["listChannelsInServer", serverId],
     queryFn: async () => {
-      const channels = await pb
-        .collection("channels")
-        .getFullList<Channel>(200, {
-          filter: `server = "${serverId}"`,
-        });
+      const channels = await databases.listDocuments(
+        process.env.NEXT_PUBLIC_DISCLONE_DATABASE as string,
+        process.env.NEXT_PUBLIC_CHANNELS_COLLECTION as string,
+        [Query.equal("server", serverId)]
+      );
       return channels;
     },
     enabled: !!serverId,
@@ -67,7 +76,11 @@ export default function ChannelList({ serverId }: ChannelListProps) {
   const { data: currentServer } = useQuery({
     queryKey: ["getServer", serverId],
     queryFn: async () => {
-      const server = await pb.collection("servers").getOne<Server>(serverId);
+      const server = await databases.getDocument(
+        process.env.NEXT_PUBLIC_DISCLONE_DATABASE as string,
+        process.env.NEXT_PUBLIC_SERVERS_COLLECTION as string,
+        serverId
+      );
       return server;
     },
     enabled: !!serverId,
@@ -82,15 +95,12 @@ export default function ChannelList({ serverId }: ChannelListProps) {
   };
 
   useEffect(() => {
-    if (
-      pb.authStore.isValid &&
-      channels?.length !== 0 &&
-      serverId &&
-      !currentChannelId
-    ) {
-      router.replace(`/servers/${serverId}/channels/${channels?.[0].id}`);
+    if (channels?.documents?.length !== 0 && serverId && !currentChannelId) {
+      router.replace(
+        `/servers/${serverId}/channels/${channels?.documents?.[0].$id}`
+      );
     }
-  }, [serverId, channels, pathname, currentChannelId]);
+  }, [serverId, channels?.documents, pathname, currentChannelId]);
 
   return (
     <>
@@ -108,16 +118,16 @@ export default function ChannelList({ serverId }: ChannelListProps) {
           />
         </div>
         <div className="flex flex-col gap-1">
-          {channels?.map(({ id, name }) => {
+          {channels?.documents?.map(({ $id, name }) => {
             return (
               <Link
-                href={`/servers/${serverId}/channels/${id}`}
-                key={id}
-                onContextMenu={(e) => onChannelRightClick(e, id)}
+                href={`/servers/${serverId}/channels/${$id}`}
+                key={$id}
+                onContextMenu={(e) => onChannelRightClick(e, $id)}
               >
                 <div
                   className={`flex items-center gap-4 rounded-md p-1 ${
-                    currentChannelId === id ? "bg-slate-600" : ""
+                    currentChannelId === $id ? "bg-slate-600" : ""
                   }`}
                 >
                   <span className="flex items-center gap-1 font-medium text-white">

@@ -1,14 +1,11 @@
 "use client";
 
-import pb from "@/lib/appwrite";
+import { client, databases } from "@/lib/appwrite";
 import { useQuery } from "@tanstack/react-query";
+import { Query } from "appwrite";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { Record } from "pocketbase";
 import { useEffect, useRef } from "react";
-import { User } from "../../ServerUsers";
-
-type Message = { user: string; text: string; channel: string } & Record;
 
 export default function Messages() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -16,57 +13,67 @@ export default function Messages() {
   const { data: messages, refetch } = useQuery({
     queryKey: ["listMessagesInChannel", currentChannelId],
     queryFn: async () => {
-      const messages = await pb
-        .collection("messages")
-        .getFullList<Message>(200, {
-          filter: `channel = "${currentChannelId}"`,
-          expand: "user",
-        });
+      const messages = await databases.listDocuments(
+        process.env.NEXT_PUBLIC_DISCLONE_DATABASE as string,
+        process.env.NEXT_PUBLIC_MESSAGES_COLLECTION as string,
+        [Query.search("channel", currentChannelId)]
+      );
       return messages;
     },
     enabled: !!currentChannelId,
   });
 
   useEffect(() => {
-    pb.collection("messages").subscribe("*", function (e) {
-      refetch();
+    const unsubscribe = client.subscribe("messages", (response) => {
+      if (
+        response.events.includes("messages.create") ||
+        response.events.includes("messages.delete") ||
+        response.events.includes("messages.update")
+      ) {
+        refetch();
+      }
     });
+
+    return () => {
+      unsubscribe();
+    };
   }, []);
 
   useEffect(() => {
     if (messagesEndRef.current)
       messagesEndRef.current.scrollTop = messagesEndRef.current.scrollHeight;
-  }, [messagesEndRef, messages?.length]);
+  }, [messagesEndRef, messages?.documents?.length]);
 
-  if (!messages?.length)
+  if (!messages?.documents?.length) {
     return (
       <div className="m-auto text-lg text-white">There are no messages.</div>
     );
+  }
 
   return (
     <div
       ref={messagesEndRef}
       className="flex grow flex-col gap-6 overflow-y-auto p-3"
     >
-      {messages?.map(({ id, text, created, expand }) => {
-        const user = expand.user as User;
-        const userAvatarUrl = user.avatar
-          ? `${process.env.NEXT_PUBLIC_POCKETBASE_URL}/api/files/${user.collectionName}/${user.id}/${user.avatar}`
+      {messages?.documents?.map(({ $id, user, userName, text, $createdAt }) => {
+        const userAvatarUrl = user
+          ? `https://be.isaiasdev.com/v1/storage/buckets/640fc7985bb2d090636f/files/${user}-avatar/view?project=640fb1566bf66af19142`
           : "/defaultAvatar.webp";
+
         return (
-          <div className="flex items-center gap-3" key={id}>
+          <div className="flex items-center gap-3" key={$id}>
             <Image
-              src={userAvatarUrl}
+              src={userAvatarUrl || "/defaultAvatar.webp"}
               alt=""
-              className="w-fit rounded-full"
+              className="object rounded-full object-cover w-10 h-10"
               width={40}
               height={40}
             />
-            <div className="flex flex-col items-start" key={id}>
+            <div className="flex flex-col items-start" key={$id}>
               <div>
-                <span className="text-white">{user.name}</span>{" "}
+                <span className="text-white">{userName}</span>{" "}
                 <span className="text-xs text-gray-400">
-                  {created.split(" ").slice(0, 1).join("")}
+                  {$createdAt.split("T").slice(0, 1).join("")}
                 </span>
               </div>
               <span

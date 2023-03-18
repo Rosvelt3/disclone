@@ -8,48 +8,34 @@ export default function RouteGuard({
 }: {
   children: React.ReactNode;
 }) {
-  const [loading, setLoading] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
   const publicRoutes = ["/login", "/signup"];
+  const [loading, setLoading] = useState(true);
 
-  // useEffect(() => {
-  //   const unsubscribe = pb.authStore.onChange(() => {
-  //     if (
-  //       !pb.authStore.isValid &&
-  //       pathname &&
-  //       !publicRoutes.includes(pathname)
-  //     ) {
-  //       return router.replace("/login");
-  //     }
+  useEffect(() => {
+    // If the user is not logged in and is not on a public route, redirect to login
+    if (
+      localStorage.getItem("cookieFallback") === "[]" &&
+      !publicRoutes.includes(pathname)
+    ) {
+      router.push("/login");
+      setLoading(false);
+    }
 
-  //     if (pb.authStore.isValid && pathname) {
-  //       if (publicRoutes.includes(pathname)) {
-  //         return router.replace("/");
-  //       } else {
-  //         return router.replace(pathname || "/");
-  //       }
-  //     }
-  //   }, true);
+    // If the user is logged in and is on a public route, redirect to home
+    if (
+      localStorage.getItem("cookieFallback") !== "[]" &&
+      publicRoutes.includes(pathname)
+    ) {
+      router.push("/");
+      setLoading(false);
+    }
 
-  //   return () => {
-  //     unsubscribe();
-  //   };
-  // }, []);
+    setLoading(false);
+  }, [pathname]);
 
-  // useEffect(() => {
-  //   if (pb.authStore.isValid && pathname && !publicRoutes.includes(pathname)) {
-  //     setLoading(false);
-  //     return router.replace(pathname);
-  //   }
-
-  //   if (!pb.authStore.isValid && pathname !== "/signup") {
-  //     setLoading(false);
-  //     return router.replace("/login");
-  //   }
-  // }, [pathname]);
-
-  if (loading)
+  if (loading) {
     return (
       <div className="flex h-screen items-center justify-center bg-slate-800">
         <div role="status">
@@ -73,6 +59,7 @@ export default function RouteGuard({
         </div>
       </div>
     );
+  }
 
   return <>{children}</>;
 }

@@ -1,6 +1,8 @@
 "use client";
 
+import { account, databases } from "@/lib/appwrite";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { Query } from "appwrite";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -11,51 +13,56 @@ import { Tooltip } from "react-tooltip";
 import "react-tooltip/dist/react-tooltip.css";
 import AddServerModal from "./AddServerModal";
 
-export type Server = { name: string; users: string[]; owner: string }
+export type Server = { name: string; users: string[]; owner: string };
 const MENU_ID = "server-menu";
 export default function ServerList() {
-  // const { show } = useContextMenu({ id: MENU_ID });
-  // const router = useRouter();
-  // const pathname = usePathname();
-  // const currentServer = pathname?.split("/")[2];
+  const { show } = useContextMenu({ id: MENU_ID });
+  const router = useRouter();
+  const pathname = usePathname();
+  const currentServer = pathname?.split("/")[2];
   const [showAddServerModal, setShowAddServerModal] = useState(false);
-  // const useDeleteServerMutation = () =>
-  //   useMutation({
-  //     mutationFn: async (serverId: string) => {
-  //       await pb.collection("servers").delete(serverId);
-  //     },
-  //     onSuccess: () => {
-  //       refetch();
-  //     },
-  //   });
+  const useDeleteServerMutation = () =>
+    useMutation({
+      mutationFn: async (serverId: string) => {
+        await databases.deleteDocument(
+          process.env.NEXT_PUBLIC_DISCLONE_DATABASE as string,
+          process.env.NEXT_PUBLIC_SERVERS_COLLECTION as string,
+          serverId
+        );
+      },
+      onSuccess: () => {
+        refetch();
+      },
+    });
 
-  // const deleteServerMutation = useDeleteServerMutation();
+  const deleteServerMutation = useDeleteServerMutation();
 
   const { data: servers, refetch } = useQuery({
-    // queryKey: ["listUserServers", pb.authStore.model?.id],
+    queryKey: ["listUserServers"],
     queryFn: async () => {
-      // const servers = await pb.collection("servers").getFullList<Server>(200, {
-      //   filter: `users ~ "${pb.authStore.model?.id}"`,
-      // });
-      // return servers as Server[];
+      const currentUser = await account.get();
+      const servers = await databases.listDocuments(
+        process.env.NEXT_PUBLIC_DISCLONE_DATABASE as string,
+        process.env.NEXT_PUBLIC_SERVERS_COLLECTION as string,
+        [Query.search("users", currentUser.$id)]
+      );
+      return servers;
     },
-    // enabled: !!pb.authStore.model,
   });
 
   const onServerRightClick = (e: React.MouseEvent, serverId: string) => {
-    // show({ event: e, props: { serverId } });
+    show({ event: e, props: { serverId } });
   };
 
   const handleServerDelete = ({ props }: ItemParams) => {
-    // deleteServerMutation.mutate(props.serverId);
+    deleteServerMutation.mutate(props.serverId);
   };
 
-  // useEffect(() => {
-  //   console.log("test");
-  //   if (pb.authStore.isValid && servers?.length !== 0 && !currentServer) {
-  //     router.replace(`/servers/${servers?.[0].id}`);
-  //   }
-  // }, [servers, currentServer]);
+  useEffect(() => {
+    if (servers?.documents?.length !== 0 && !currentServer) {
+      router.replace(`/servers/${servers?.documents?.[0].$id}`);
+    }
+  }, [servers, currentServer]);
 
   return (
     <>
@@ -73,19 +80,19 @@ export default function ServerList() {
           place="right"
           className="bg-gray-900 text-white opacity-100"
         />
-        {servers?.map(({ name, id }) => (
+        {servers?.documents.map(({ name, $id }) => (
           <Link
-            id={id}
-            key={id}
-            href={`/servers/${id}`}
-            onContextMenu={(e) => onServerRightClick(e, id)}
+            id={$id}
+            key={$id}
+            href={`/servers/${$id}`}
+            onContextMenu={(e) => onServerRightClick(e, $id)}
             className="flex h-[3rem] w-[3rem] items-center justify-center rounded-lg bg-slate-600 transition-all hover:rounded-none"
           >
-            <div className="text-2xl flex cursor-pointer items-center justify-center rounded-lg text-white transition-all hover:rounded-none">
+            <div className="flex cursor-pointer items-center justify-center rounded-lg text-2xl text-white transition-all hover:rounded-none">
               {name[0].toUpperCase()}
             </div>
             <Tooltip
-              anchorId={id}
+              anchorId={$id}
               content={name}
               place="right"
               className="bg-gray-900 text-white opacity-100"
@@ -93,8 +100,8 @@ export default function ServerList() {
           </Link>
         ))}
         <button
-          onClick={() => {
-            pb.authStore.clear();
+          onClick={async () => {
+            await account.deleteSession("current");
             router.replace("/login");
           }}
           id="logout"

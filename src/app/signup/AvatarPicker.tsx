@@ -31,7 +31,7 @@ export default function AvatarPicker({
   return (
     <div className={`flex flex-col items-center ${className}`}>
       <Image
-        className="object rounded-full object-cover"
+        className="object rounded-full object-cover w-24 h-24"
         alt="Default Avatar"
         width={96}
         height={96}

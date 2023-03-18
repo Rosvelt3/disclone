@@ -1,9 +1,9 @@
 "use client";
 
-import { account } from "@/lib/appwrite";
+import { account, storage } from "@/lib/appwrite";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
-import { ID } from "appwrite";
+import { ID, Permission, Role } from "appwrite";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -12,7 +12,7 @@ import { z } from "zod";
 import AvatarPicker from "./AvatarPicker";
 
 const signupSchema = z.object({
-  avatar: z.any().optional(),
+  avatar: z.any().refine((files) => files?.length == 1, "Avatar is required."),
   name: z.string().trim().min(1, "Full name is required"),
   email: z
     .string()
@@ -48,13 +48,33 @@ export default function SignupCard() {
   const useSignupMutation = () =>
     useMutation({
       mutationFn: async (signupData: FormData) => {
-        const authData = account.create(
+        const authData = await account.create(
           ID.unique(),
           signupData.get("email") as string,
           signupData.get("password") as string,
           signupData.get("name") as string
         );
-        return authData;
+
+        const avatar = signupData.get("avatar");
+        let fileData = {};
+        if (avatar) {
+          fileData = await storage.createFile(
+            process.env.NEXT_PUBLIC_USER_AVATARS_BUCKET as string,
+            `${authData.$id}-avatar`,
+            avatar as File,
+            [Permission.read(Role.any())]
+          );
+        }
+
+        const loginData = await account.createEmailSession(
+          signupData.get("email") as string,
+          signupData.get("password") as string
+        );
+        return {
+          authData,
+          fileData,
+          loginData,
+        };
       },
     });
 
@@ -86,6 +106,9 @@ export default function SignupCard() {
       <h1 className="text-center text-2xl text-white">Create an account</h1>
       <form onSubmit={handleSubmit(onSignup)}>
         <AvatarPicker className="mt-8" name="avatar" register={register} />
+        {errors.avatar && (
+            <p className="text-sm text-center italic text-red-500">{errors.avatar.message?.toString()}</p>
+          )}
         <div className="mt-4">
           <label className="font-medium text-slate-200">Full Name</label>
           <input

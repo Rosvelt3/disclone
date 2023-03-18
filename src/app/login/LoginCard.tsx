@@ -1,8 +1,9 @@
 "use client";
 
-import pb from "@/lib/appwrite";
+import { account } from "@/lib/appwrite";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
+import { AppwriteException } from "appwrite";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -39,10 +40,11 @@ export default function LoginCard() {
   const useLoginMutation = () =>
   useMutation({
     mutationFn: async (data: LoginData) => {
-      const authData = await pb
-        .collection("users")
-        .authWithPassword(data.email, data.password);
-      return authData;
+      const loginData = await account.createEmailSession(
+        data.email,
+        data.password,
+      );
+      return loginData;
     },
   });
   
@@ -53,10 +55,14 @@ export default function LoginCard() {
       onSuccess: () => {
         router.push("/");
       },
-      onError: (error: any) => {
-        if (error.status === 400) {
+      onError: (error) => {
+        if (error instanceof AppwriteException && error.code === 401) {
           setError("email", { message: "Email or password is invalid" });
           setError("password", { message: "Email or password is invalid" });
+        }
+        if (error instanceof AppwriteException && error.code === 429) {
+          setError("email", { message: "Too many retries. Try again in a few minutes." });
+          setError("password", { message: "Too many retries. Try again in a few minutes." });
         }
       },
     });
