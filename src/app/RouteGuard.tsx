@@ -16,7 +16,8 @@ export default function RouteGuard({
   useEffect(() => {
     // If the user is not logged in and is not on a public route, redirect to login
     if (
-      localStorage.getItem("cookieFallback") === "[]" &&
+      (localStorage.getItem("cookieFallback") === "[]" ||
+        !localStorage.getItem("cookieFallback")) &&
       !publicRoutes.includes(pathname)
     ) {
       router.push("/login");
