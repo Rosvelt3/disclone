@@ -13,11 +13,9 @@ const messageSchema = z.object({
 });
 
 type Message = {
-  user: string | undefined;
   text: string;
   channel: string | undefined;
 };
-type MessageRecord = Message;
 
 export default function ChatBox() {
   const queryClient = useQueryClient();
@@ -72,7 +70,7 @@ export default function ChatBox() {
     <div className="px-4 pt-2">
       <form
         onSubmit={handleSubmit((data) =>
-          onSubmit({ user, channel, text: data.text })
+          onSubmit({ channel, text: data.text })
         )}
         className="mx-auto mb-6 flex w-full"
       >
