@@ -8,6 +8,7 @@
 // export type User = { name: string; avatar: string; owner: boolean } & Record;
 // type ServerUsersProps = { serverId: string };
 
+export default function ServerUsers() {
 // export default function ServerUsers({ serverId }: ServerUsersProps) {
 //   const { data: users } = useQuery({
 //     queryKey: ["listUsersInServer", serverId],
@@ -80,3 +81,4 @@ return <div></div>
 //     </div>
 //   );
 // }
+}
