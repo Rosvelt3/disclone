@@ -1,4 +1,4 @@
-import { databases } from "@/lib/appwrite";
+import { account, databases } from "@/lib/appwrite";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ID } from "appwrite";
@@ -58,11 +58,13 @@ export default function AddServerModal({
 
   const addServerMutation = useAddServerMutation();
 
-  const onSubmit = (data: AddServerData) => {
+  const onSubmit = async (data: AddServerData) => {
+    const currentUser = await account.get();
+
     const serverData = {
-      name: "test",
-      users: ["test"],
-      owner: "test",
+      name: data.serverName,
+      users: [currentUser?.$id],
+      owner: currentUser?.$id,
     };
 
     toggle();

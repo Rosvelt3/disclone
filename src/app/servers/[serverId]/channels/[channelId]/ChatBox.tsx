@@ -2,7 +2,7 @@
 
 import { account, databases } from "@/lib/appwrite";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ID } from "appwrite";
 import { usePathname } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -27,18 +27,11 @@ export default function ChatBox() {
 
   const channel = usePathname()?.split("/").pop();
 
-  const { data: user } = useQuery({
-    queryKey: ["getUser"],
-    queryFn: async () => {
-      const currentUser = await account.get();
-      return currentUser;
-    },
-    enabled: !!channel,
-  });
-
   const useSendMessageMutation = () =>
     useMutation({
       mutationFn: async (message: Message) => {
+        const user = await account.get();
+        
         if (!user || !channel) return;
         const messageData = await databases.createDocument(
           process.env.NEXT_PUBLIC_DISCLONE_DATABASE as string,
